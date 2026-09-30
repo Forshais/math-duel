@@ -4,18 +4,36 @@
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => document.querySelectorAll(s);
 
+const NUMPAD_LAYOUTS = {
+  calc:  [7, 8, 9, 4, 5, 6, 1, 2, 3], // kalkulatora stils (7-8-9 augšā)
+  phone: [1, 2, 3, 4, 5, 6, 7, 8, 9], // telefona stils (1-2-3 augšā)
+};
+const TOL_OPTIONS = [
+  { v: 30, label: "±30" },
+  { v: 100, label: "±100" },
+  { v: 200, label: "±200" },
+  { v: 500, label: "±500" },
+  { v: "any", label: "Jebkurš" },
+];
+
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
 const state = {
   token: null,
   nick: null,
   profile: null,
   config: null,
   level: 1,
-  format: "blitz",
+  formats: ["blitz"],          // vairāki formāti atļauti matchmaking
   ops: ["+", "-", "*", "/"],
-  match: null,      // { you, opponent, levelId }
+  numpadLayout: lsGet("md_numpad", "calc"),
+  ratingTol: (() => { const t = lsGet("md_tol", "200"); return t === "any" ? "any" : Number(t); })(),
+  match: null,
   answer: "",
   locked: true,
-  es: null,         // EventSource
+  seq: 0,
+  es: null,
   timerRAF: null,
   endsAt: 0,
 };
@@ -43,7 +61,7 @@ async function login() {
     state.token = data.token;
     state.nick = data.profile.nick;
     state.profile = data.profile;
-    try { localStorage.setItem("md_nick", nick); } catch {}
+    lsSet("md_nick", nick);
     await loadConfig();
     connectStream();
     enterLobby();
@@ -131,9 +149,16 @@ function renderFormats() {
   row.innerHTML = "";
   for (const f of state.config.formats) {
     const b = document.createElement("button");
-    b.className = "pill" + (f.id === state.format ? " sel" : "");
+    b.className = "pill" + (state.formats.includes(f.id) ? " sel" : "");
     b.textContent = f.label;
-    b.onclick = () => { state.format = f.id; renderFormats(); };
+    b.onclick = () => {
+      if (state.formats.includes(f.id)) {
+        if (state.formats.length > 1) state.formats = state.formats.filter((x) => x !== f.id);
+      } else {
+        state.formats = [...state.formats, f.id];
+      }
+      renderFormats();
+    };
     row.appendChild(b);
   }
 }
@@ -168,11 +193,35 @@ function renderHistory() {
     const delta = g.delta > 0 ? `+${g.delta}` : `${g.delta}`;
     li.innerHTML =
       `<span class="h-res ${g.result}">${resLv}</span>` +
-      `<span class="h-mid">L${g.levelId} · pret ${g.oppNick} · ${g.myScore}:${g.oppScore}</span>` +
+      `<span class="h-mid">L${g.levelId} · pret ${escapeHtml(g.oppNick)} · ${g.myScore}:${g.oppScore}</span>` +
       `<span class="h-delta ${g.delta >= 0 ? "up" : "down"}">${delta}</span>`;
     ul.appendChild(li);
   }
 }
+
+// ---------- Ciparnīca ----------
+function buildNumpad(container, interactive) {
+  container.innerHTML = "";
+  const digits = NUMPAD_LAYOUTS[state.numpadLayout] || NUMPAD_LAYOUTS.calc;
+  const cls = interactive ? "np" : "np-preview";
+  for (const d of digits) {
+    const b = document.createElement("button");
+    b.className = cls;
+    b.dataset.k = String(d);
+    b.textContent = String(d);
+    container.appendChild(b);
+  }
+  // apakšējā rinda: ⌫ 0 OK
+  const del = document.createElement("button");
+  del.className = cls; del.dataset.k = "del"; del.textContent = "⌫";
+  const zero = document.createElement("button");
+  zero.className = cls; zero.dataset.k = "0"; zero.textContent = "0";
+  const ok = document.createElement("button");
+  ok.className = interactive ? "np np-ok" : "np-preview ok"; ok.dataset.k = "ok"; ok.textContent = "OK";
+  container.append(del, zero, ok);
+}
+
+function renderNumpad() { buildNumpad($("#numpad"), true); }
 
 // ---------- Gaidīšana ----------
 function showWait(title, withCode) {
@@ -187,7 +236,8 @@ function showWaitCode(code) {
 
 // ---------- Spēle ----------
 function onMatchFound(m) {
-  state.match = { you: m.you, opponent: m.opponent, levelId: m.levelId };
+  state.match = { you: m.you, opponent: m.opponent, levelId: m.levelId, format: m.format, seconds: m.seconds };
+  renderNumpad();
   $("#cd-you").textContent = m.you;
   $("#cd-opp").textContent = m.opponent;
   $("#sb-you").querySelector(".sb-name").textContent = m.you;
@@ -210,6 +260,7 @@ function onRoundStart(m) {
   show("#screen-duel");
   state.answer = "";
   state.locked = false;
+  state.seq = m.seq;
   state.endsAt = m.endsAt;
   updateScores(m.scores);
   $("#question-text").textContent = m.text;
@@ -225,16 +276,45 @@ function onRoundResult(m) {
   updateScores(m.scores);
 
   const flash = $("#round-flash");
+  const main = $("#rf-main");
+  const sub = $("#rf-sub");
   flash.className = "round-flash";
-  void flash.offsetWidth;
+  main.className = "rf-main";
+  sub.className = "rf-sub";
+  main.textContent = "";
+  sub.textContent = "";
+
+  const mine = m.answeredBy && state.match && m.answeredBy === state.match.you;
+
   if (m.answeredBy === null) {
-    flash.textContent = "—";
-    flash.classList.add("show");
+    // neviens nepaspēja
+    main.classList.add("neutral");
+    main.textContent = "—";
+    sub.textContent = "= " + m.answer;
+  } else if (mine) {
+    if (m.correct) {
+      main.classList.add("good");
+      main.textContent = "✓";
+    } else {
+      main.classList.add("bad");
+      main.textContent = "✗";
+      sub.textContent = "= " + m.answer; // pareizais pelēkā
+    }
   } else {
-    const mine = m.answeredBy === state.match.you;
-    flash.textContent = m.correct ? (mine ? "✓" : "✓ " + m.answeredBy) : "✗";
-    flash.classList.add("show", m.correct ? "good" : "bad");
+    // pretinieks atbildēja
+    if (m.correct) {
+      main.classList.add("good");
+      main.textContent = m.answeredBy;
+      sub.classList.add("good");
+      sub.textContent = "= " + m.answer;
+    } else {
+      main.classList.add("bad");
+      main.textContent = m.answeredBy;          // niks sarkanā
+      sub.textContent = "= " + m.answer;        // pareizais pelēkā
+    }
   }
+  flash.classList.add("show");
+
   // pāreja: uzpūšanās aplis
   const circle = $("#transition-circle");
   circle.className = "transition-circle";
@@ -256,7 +336,7 @@ function startTimer() {
   cancelAnimationFrame(state.timerRAF);
   const tick = () => {
     const left = Math.max(0, state.endsAt - Date.now());
-    const total = state.config.formats.find((f) => f.id === state.format)?.seconds * 1000 || 60000;
+    const total = (state.match?.seconds || 60) * 1000;
     const pct = Math.max(0, Math.min(100, (left / total) * 100));
     $("#timer-fill").style.width = pct + "%";
     const sec = Math.ceil(left / 1000);
@@ -266,7 +346,6 @@ function startTimer() {
   tick();
 }
 
-// Ciparnīca
 function onKey(k) {
   if (state.locked) return;
   if (k === "del") state.answer = state.answer.slice(0, -1);
@@ -279,7 +358,7 @@ function submitAnswer() {
   if (state.locked || state.answer === "") return;
   const val = state.answer;
   state.locked = true;
-  action("answer", { value: val });
+  action("answer", { value: val, seq: state.seq });
 }
 
 function onMatchEnd(m) {
@@ -314,6 +393,43 @@ async function refreshProfile() {
     const d = await r.json();
     if (d.profile) { state.profile = d.profile; }
   } catch {}
+}
+
+// ---------- Iestatījumi ----------
+function openSettings() {
+  renderNumpadLayoutRow();
+  renderTolRow();
+  buildNumpad($("#numpad-preview"), false);
+  show("#screen-settings");
+}
+function renderNumpadLayoutRow() {
+  const row = $("#numpad-layout-row");
+  row.innerHTML = "";
+  const opts = [{ v: "calc", label: "Kalkulators (7-8-9 augšā)" }, { v: "phone", label: "Telefons (1-2-3 augšā)" }];
+  for (const o of opts) {
+    const b = document.createElement("button");
+    b.className = "pill" + (state.numpadLayout === o.v ? " sel" : "");
+    b.textContent = o.label;
+    b.onclick = () => {
+      state.numpadLayout = o.v; lsSet("md_numpad", o.v);
+      renderNumpadLayoutRow(); buildNumpad($("#numpad-preview"), false);
+    };
+    row.appendChild(b);
+  }
+}
+function renderTolRow() {
+  const row = $("#tol-row");
+  row.innerHTML = "";
+  for (const o of TOL_OPTIONS) {
+    const b = document.createElement("button");
+    b.className = "pill" + (String(state.ratingTol) === String(o.v) ? " sel" : "");
+    b.textContent = o.label;
+    b.onclick = () => {
+      state.ratingTol = o.v; lsSet("md_tol", String(o.v));
+      renderTolRow();
+    };
+    row.appendChild(b);
+  }
 }
 
 // ---------- Tops ----------
@@ -356,10 +472,10 @@ try { const saved = localStorage.getItem("md_nick"); if (saved) $("#in-nick").va
 
 $("#btn-quick").onclick = async () => {
   showWait("Meklējam pretinieku…", false);
-  await action("queue", { levelId: state.level, format: state.format, ops: state.ops });
+  await action("queue", { levelId: state.level, formats: state.formats, ops: state.ops, ratingTol: state.ratingTol });
 };
 $("#btn-create").onclick = async () => {
-  await action("createPrivate", { levelId: state.level, format: state.format, ops: state.ops });
+  await action("createPrivate", { levelId: state.level, formats: state.formats, ops: state.ops });
 };
 $("#btn-join").onclick = async () => {
   const code = $("#in-code").value.trim().toUpperCase();
@@ -377,12 +493,13 @@ $("#btn-rematch").onclick = async () => {
 $("#btn-lobby").onclick = async () => { await action("leave"); enterLobby(); };
 $("#btn-board").onclick = openBoard;
 $("#btn-board-back").onclick = () => show("#screen-lobby");
+$("#btn-settings").onclick = openSettings;
+$("#btn-settings-back").onclick = () => show("#screen-lobby");
 
 $("#numpad").addEventListener("click", (e) => {
   const b = e.target.closest(".np");
   if (b) onKey(b.dataset.k);
 });
-// Fiziskā klaviatūra (datoram)
 document.addEventListener("keydown", (e) => {
   if (!$("#screen-duel").classList.contains("active")) return;
   if (e.key >= "0" && e.key <= "9") onKey(e.key);

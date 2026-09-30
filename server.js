@@ -139,7 +139,7 @@ const server = createServer(async (req, res) => {
       case "cancelQueue": cancelQueue(token); break;
       case "createPrivate": result = createPrivate(token, body); break;
       case "joinPrivate": result = joinPrivate(token, body.code); break;
-      case "answer": submitAnswer(token, body.value); break;
+      case "answer": submitAnswer(token, body.value, body.seq); break;
       case "rematch": requestRematch(token); break;
       case "leave": leaveAll(token); break;
       default: return sendJSON(res, 400, { error: "Nezināma darbība." });
