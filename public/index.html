@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="lv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0e1230">
+<title>Matemātikas duelis</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Pieteikšanās -->
+<section id="screen-login" class="screen active">
+  <div class="card">
+    <h1 class="logo">Matemātikas<span>duelis</span></h1>
+    <p class="tagline">Ātrāk. Precīzāk. Uzvari.</p>
+    <label class="field">
+      <span>Tavs Nick</span>
+      <input id="in-nick" type="text" maxlength="20" autocomplete="off" placeholder="piem. Janis">
+    </label>
+    <label class="field">
+      <span>PIN (4–8 cipari)</span>
+      <input id="in-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
+    </label>
+    <button id="btn-login" class="btn primary big">Ienākt / Reģistrēties</button>
+    <p id="login-error" class="error"></p>
+    <p class="hint">Ar to pašu Nick + PIN nākamreiz saglabāsies tavs reitings un vēsture.</p>
+  </div>
+</section>
+
+<!-- Lobby -->
+<section id="screen-lobby" class="screen">
+  <header class="topbar">
+    <div class="me">
+      <span class="me-nick" id="lobby-nick">—</span>
+      <span class="me-rating" id="lobby-rating">—</span>
+    </div>
+    <button id="btn-board" class="btn ghost small">Tops</button>
+  </header>
+
+  <div class="card">
+    <h2>Grūtības līmenis</h2>
+    <div id="level-grid" class="grid-levels"></div>
+
+    <h2>Partijas garums</h2>
+    <div id="format-row" class="pill-row"></div>
+
+    <h2>Darbības</h2>
+    <div id="ops-row" class="pill-row"></div>
+
+    <div class="actions">
+      <button id="btn-quick" class="btn primary big">Ātrā spēle</button>
+      <div class="or">vai spēlē ar draugu</div>
+      <div class="friend-row">
+        <button id="btn-create" class="btn secondary">Izveidot istabu</button>
+        <div class="join-inline">
+          <input id="in-code" type="text" maxlength="4" placeholder="KODS" autocomplete="off">
+          <button id="btn-join" class="btn secondary">Pievienoties</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="history-card">
+    <h2>Pēdējās partijas</h2>
+    <ul id="history-list" class="history"></ul>
+  </div>
+</section>
+
+<!-- Gaidīšana / kods -->
+<section id="screen-wait" class="screen">
+  <div class="card center">
+    <div class="spinner"></div>
+    <h2 id="wait-title">Meklējam pretinieku…</h2>
+    <div id="wait-code" class="code-box" hidden>
+      <p>Nosūti draugam šo kodu:</p>
+      <div class="code" id="code-value">----</div>
+      <p class="hint">Draugs ievada to sadaļā "Pievienoties".</p>
+    </div>
+    <button id="btn-cancel-wait" class="btn ghost">Atcelt</button>
+  </div>
+</section>
+
+<!-- Atpakaļskaitīšana -->
+<section id="screen-countdown" class="screen">
+  <div class="countdown-wrap">
+    <div class="vs">
+      <span id="cd-you" class="vs-name">—</span>
+      <span class="vs-x">VS</span>
+      <span id="cd-opp" class="vs-name">—</span>
+    </div>
+    <div id="cd-number" class="cd-number">3</div>
+  </div>
+</section>
+
+<!-- Duelis -->
+<section id="screen-duel" class="screen">
+  <div class="scoreboard">
+    <div class="sb-player" id="sb-you">
+      <span class="sb-name">—</span>
+      <span class="sb-score">0</span>
+    </div>
+    <div class="sb-timer">
+      <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
+      <span id="timer-text">0:00</span>
+    </div>
+    <div class="sb-player right" id="sb-opp">
+      <span class="sb-name">—</span>
+      <span class="sb-score">0</span>
+    </div>
+  </div>
+
+  <div class="question-area">
+    <div id="transition-circle" class="transition-circle"></div>
+    <div id="question-text" class="question">—</div>
+    <div id="answer-display" class="answer-display">&nbsp;</div>
+    <div id="round-flash" class="round-flash"></div>
+  </div>
+
+  <div class="numpad" id="numpad">
+    <button class="np" data-k="7">7</button>
+    <button class="np" data-k="8">8</button>
+    <button class="np" data-k="9">9</button>
+    <button class="np" data-k="4">4</button>
+    <button class="np" data-k="5">5</button>
+    <button class="np" data-k="6">6</button>
+    <button class="np" data-k="1">1</button>
+    <button class="np" data-k="2">2</button>
+    <button class="np" data-k="3">3</button>
+    <button class="np np-wide" data-k="del">⌫</button>
+    <button class="np" data-k="0">0</button>
+    <button class="np np-ok" data-k="ok">OK</button>
+  </div>
+</section>
+
+<!-- Rezultāts -->
+<section id="screen-result" class="screen">
+  <div class="card center">
+    <div id="result-badge" class="result-badge">—</div>
+    <div class="result-scores">
+      <span id="result-you-score">0</span>
+      <span class="colon">:</span>
+      <span id="result-opp-score">0</span>
+    </div>
+    <div id="result-rating" class="result-rating">—</div>
+    <div id="rematch-status" class="hint"></div>
+    <div class="actions">
+      <button id="btn-rematch" class="btn primary big">Vēlreiz</button>
+      <button id="btn-lobby" class="btn ghost">Uz sākumu</button>
+    </div>
+  </div>
+</section>
+
+<!-- Tops -->
+<section id="screen-board" class="screen">
+  <header class="topbar">
+    <button id="btn-board-back" class="btn ghost small">← Atpakaļ</button>
+    <h2 class="board-title">Tops</h2>
+  </header>
+  <div class="card">
+    <div id="board-levels" class="pill-row small-pills"></div>
+    <ol id="board-list" class="board"></ol>
+  </div>
+</section>
+
+<script src="app.js"></script>
+</body>
+</html>
