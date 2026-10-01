@@ -7,7 +7,7 @@ import { join, extname, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
-import { loadDB, loginOrRegister, newSession, sessionNick, dropSession, getPlayer, publicProfile, leaderboard } from "./lib/store.js";
+import { loadDB, flushDB, storageMode, loginOrRegister, newSession, sessionNick, dropSession, getPlayer, publicProfile, leaderboard } from "./lib/store.js";
 import { registerClient, unregisterClient, dropClient, isInMatch, joinQueue, cancelQueue, createPrivate, joinPrivate, submitAnswer, requestRematch, leaveAll } from "./lib/rooms.js";
 import { LEVELS, FORMATS, OPS } from "./lib/game.js";
 
@@ -15,7 +15,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, "public");
 const PORT = process.env.PORT || 3000;
 
-loadDB();
+await loadDB();
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -155,5 +155,17 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Matemātikas duelis darbojas: http://localhost:${PORT}`);
+  console.log(`Matemātikas duelis darbojas: http://localhost:${PORT} (glabātuve: ${storageMode()})`);
 });
+
+// Render pirms jaunas versijas sūta SIGTERM — saglabājam nesaglabātās izmaiņas.
+let shuttingDown = false;
+for (const sig of ["SIGTERM", "SIGINT"]) {
+  process.on(sig, async () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[server] ${sig} — saglabāju datus un izslēdzos`);
+    try { await flushDB(); } catch (e) { console.error("[server] flush kļūda:", e.message); }
+    process.exit(0);
+  });
+}

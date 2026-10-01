@@ -4,6 +4,9 @@
   "description": "Matematikas duelis - realtime multiplayer math game with per-level ELO ratings",
   "type": "module",
   "main": "server.js",
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
   "scripts": {
     "start": "node server.js"
   },

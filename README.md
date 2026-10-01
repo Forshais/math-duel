@@ -14,6 +14,8 @@ Uzbūvēts bez ārējām atkarībām: tikai Node.js iebūvētais (HTTP + SSE re�
 - **Savienojuma pārtraukumi**: 15 s laiks atgriezties partijā; pamešana = zaudējums.
 - **Uzaicinājuma saite** istabai (`?join=KODS`), paliek pieteicies pēc pārlādes.
 - Taimeris neatkarīgs no telefona pulksteņa, punktu uzlēcieni, vibrācija, iziešana.
+- **Reitingi saglabājas** Postgres datubāzē (piem. Neon), ja iestatīts `DATABASE_URL`;
+  bez tā — fails `data/players.json` kā līdz šim.
 
 ## Iespējas (v0.1)
 
