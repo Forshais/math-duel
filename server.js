@@ -74,6 +74,11 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   const path = url.pathname;
 
+  // ---- Veselības pārbaude (Render / "pamodināšanas" pings) ----
+  if (path === "/health") {
+    return sendJSON(res, 200, { ok: true, storage: storageMode(), uptime: Math.round(process.uptime()) });
+  }
+
   // ---- Konfigurācija (līmeņi, formāti, operācijas) ----
   if (path === "/api/config" && req.method === "GET") {
     return sendJSON(res, 200, { levels: LEVELS, formats: Object.values(FORMATS), ops: OPS });
