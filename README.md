@@ -5,6 +5,16 @@ katram grūtības līmenim — līdzīgi kā chess.com, tikai ar rēķināšanu.
 
 Uzbūvēts bez ārējām atkarībām: tikai Node.js iebūvētais (HTTP + SSE reāllaikam).
 
+## Jaunumi v0.3
+
+- **Angļu valoda** kā noklusētā, latviešu — iestatījumos (vai pieteikšanās ekrānā).
+- **Raunda rezultāts vienmēr redzams** līdz nākamajam uzdevumam: ✓ pareizi,
+  ✗ + pareizā atbilde pelēkā, pretinieka Nick + atbilde, ja viņš paspēja pirmais.
+- **Ātrāka ciparnīca** (reaģē uz pieskārienu uzreiz, bez telefona aizkaves).
+- **Savienojuma pārtraukumi**: 15 s laiks atgriezties partijā; pamešana = zaudējums.
+- **Uzaicinājuma saite** istabai (`?join=KODS`), paliek pieteicies pēc pārlādes.
+- Taimeris neatkarīgs no telefona pulksteņa, punktu uzlēcieni, vibrācija, iziešana.
+
 ## Iespējas (v0.1)
 
 - **Pieteikšanās ar Nick + PIN** — reitings un vēsture saglabājas starp reizēm.

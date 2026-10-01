@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="lv">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0e1230">
-<title>Matemātikas duelis</title>
+<title>Math Duel</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -12,19 +12,20 @@
 <!-- Pieteikšanās -->
 <section id="screen-login" class="screen active">
   <div class="card">
-    <h1 class="logo">Matemātikas<span>duelis</span></h1>
-    <p class="tagline">Ātrāk. Precīzāk. Uzvari.</p>
+    <div id="login-lang" class="lang-switch"></div>
+    <h1 class="logo"><span data-i18n="logo.a"></span><span class="logo-b" data-i18n="logo.b"></span></h1>
+    <p class="tagline" data-i18n="tagline"></p>
     <label class="field">
-      <span>Tavs Nick</span>
-      <input id="in-nick" type="text" maxlength="20" autocomplete="off" placeholder="piem. Janis">
+      <span data-i18n="login.nick"></span>
+      <input id="in-nick" type="text" maxlength="20" autocomplete="off" data-i18n-ph="login.nickPh">
     </label>
     <label class="field">
-      <span>PIN (4–8 cipari)</span>
+      <span data-i18n="login.pin"></span>
       <input id="in-pin" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
     </label>
-    <button id="btn-login" class="btn primary big">Ienākt / Reģistrēties</button>
+    <button id="btn-login" class="btn primary big" data-i18n="login.btn"></button>
     <p id="login-error" class="error"></p>
-    <p class="hint">Ar to pašu Nick + PIN nākamreiz saglabāsies tavs reitings un vēsture.</p>
+    <p class="hint" data-i18n="login.hint"></p>
   </div>
 </section>
 
@@ -36,36 +37,36 @@
       <span class="me-rating" id="lobby-rating">—</span>
     </div>
     <div class="topbar-actions">
-      <button id="btn-settings" class="btn ghost small">⚙ Iestatījumi</button>
-      <button id="btn-board" class="btn ghost small">Tops</button>
+      <button id="btn-settings" class="btn ghost small" data-i18n="lobby.settings"></button>
+      <button id="btn-board" class="btn ghost small" data-i18n="lobby.board"></button>
     </div>
   </header>
 
   <div class="card">
-    <h2>Grūtības līmenis</h2>
+    <h2 data-i18n="lobby.level"></h2>
     <div id="level-grid" class="grid-levels"></div>
 
-    <h2>Partijas garums <span class="h2-hint">(var atzīmēt vairākus)</span></h2>
+    <h2><span data-i18n="lobby.formats"></span> <span class="h2-hint" data-i18n="lobby.formatsHint"></span></h2>
     <div id="format-row" class="pill-row"></div>
 
-    <h2>Darbības</h2>
+    <h2 data-i18n="lobby.ops"></h2>
     <div id="ops-row" class="pill-row"></div>
 
     <div class="actions">
-      <button id="btn-quick" class="btn primary big">Ātrā spēle</button>
-      <div class="or">vai spēlē ar draugu</div>
+      <button id="btn-quick" class="btn primary big" data-i18n="lobby.quick"></button>
+      <div class="or" data-i18n="lobby.or"></div>
       <div class="friend-row">
-        <button id="btn-create" class="btn secondary">Izveidot istabu</button>
+        <button id="btn-create" class="btn secondary" data-i18n="lobby.create"></button>
         <div class="join-inline">
-          <input id="in-code" type="text" maxlength="4" placeholder="KODS" autocomplete="off">
-          <button id="btn-join" class="btn secondary">Pievienoties</button>
+          <input id="in-code" type="text" maxlength="4" data-i18n-ph="lobby.codePh" autocomplete="off">
+          <button id="btn-join" class="btn secondary" data-i18n="lobby.join"></button>
         </div>
       </div>
     </div>
   </div>
 
   <div class="card" id="history-card">
-    <h2>Pēdējās partijas</h2>
+    <h2 data-i18n="lobby.history"></h2>
     <ul id="history-list" class="history"></ul>
   </div>
 </section>
@@ -74,13 +75,14 @@
 <section id="screen-wait" class="screen">
   <div class="card center">
     <div class="spinner"></div>
-    <h2 id="wait-title">Meklējam pretinieku…</h2>
+    <h2 id="wait-title"></h2>
     <div id="wait-code" class="code-box" hidden>
-      <p>Nosūti draugam šo kodu:</p>
+      <p data-i18n="wait.sendCode"></p>
       <div class="code" id="code-value">----</div>
-      <p class="hint">Draugs ievada to sadaļā "Pievienoties".</p>
+      <button id="btn-share" class="btn secondary" data-i18n="wait.share"></button>
+      <p class="hint" data-i18n="wait.codeHint"></p>
     </div>
-    <button id="btn-cancel-wait" class="btn ghost">Atcelt</button>
+    <button id="btn-cancel-wait" class="btn ghost" data-i18n="wait.cancel"></button>
   </div>
 </section>
 
@@ -102,6 +104,7 @@
     <div class="sb-player" id="sb-you">
       <span class="sb-name">—</span>
       <span class="sb-score">0</span>
+      <span class="sb-delta"></span>
     </div>
     <div class="sb-timer">
       <div class="timer-bar"><div id="timer-fill" class="timer-fill"></div></div>
@@ -110,6 +113,7 @@
     <div class="sb-player right" id="sb-opp">
       <span class="sb-name">—</span>
       <span class="sb-score">0</span>
+      <span class="sb-delta"></span>
     </div>
   </div>
 
@@ -130,6 +134,7 @@
 <section id="screen-result" class="screen">
   <div class="card center">
     <div id="result-badge" class="result-badge">—</div>
+    <div id="result-note" class="hint"></div>
     <div class="result-scores">
       <span id="result-you-score">0</span>
       <span class="colon">:</span>
@@ -138,8 +143,8 @@
     <div id="result-rating" class="result-rating">—</div>
     <div id="rematch-status" class="hint"></div>
     <div class="actions">
-      <button id="btn-rematch" class="btn primary big">Vēlreiz</button>
-      <button id="btn-lobby" class="btn ghost">Uz sākumu</button>
+      <button id="btn-rematch" class="btn primary big" data-i18n="result.rematch"></button>
+      <button id="btn-lobby" class="btn ghost" data-i18n="result.lobby"></button>
     </div>
   </div>
 </section>
@@ -147,8 +152,8 @@
 <!-- Tops -->
 <section id="screen-board" class="screen">
   <header class="topbar">
-    <button id="btn-board-back" class="btn ghost small">← Atpakaļ</button>
-    <h2 class="board-title">Tops</h2>
+    <button id="btn-board-back" class="btn ghost small" data-i18n="board.back"></button>
+    <h2 class="board-title" data-i18n="board.title"></h2>
   </header>
   <div class="card">
     <div id="board-levels" class="pill-row small-pills"></div>
@@ -159,20 +164,31 @@
 <!-- Iestatījumi -->
 <section id="screen-settings" class="screen">
   <header class="topbar">
-    <button id="btn-settings-back" class="btn ghost small">← Atpakaļ</button>
-    <h2 class="board-title">Iestatījumi</h2>
+    <button id="btn-settings-back" class="btn ghost small" data-i18n="board.back"></button>
+    <h2 class="board-title" data-i18n="settings.title"></h2>
   </header>
   <div class="card">
-    <h2>Ciparnīcas izkārtojums</h2>
+    <h2 data-i18n="settings.lang"></h2>
+    <div id="lang-row" class="pill-row"></div>
+
+    <h2 data-i18n="settings.numpad"></h2>
     <div id="numpad-layout-row" class="pill-row"></div>
     <div class="numpad-preview" id="numpad-preview"></div>
 
-    <h2>Ar kādiem pretiniekiem meklēt (reitinga starpība)</h2>
+    <h2 data-i18n="settings.tol"></h2>
     <div id="tol-row" class="pill-row"></div>
-    <p class="hint">Mazāka starpība = līdzvērtīgāks pretinieks. Lielāka = ātrāk atrod spēli, kad maz cilvēku tiešsaistē.</p>
+    <p class="hint" data-i18n="settings.tolHint"></p>
+
+    <h2 data-i18n="settings.vibrate"></h2>
+    <div id="vibrate-row" class="pill-row"></div>
+
+    <div class="actions">
+      <button id="btn-logout" class="btn ghost" data-i18n="lobby.logout"></button>
+    </div>
   </div>
 </section>
 
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 {
   "name": "math-duel",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Matematikas duelis - realtime multiplayer math game with per-level ELO ratings",
   "type": "module",
   "main": "server.js",

@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
 import { loadDB, loginOrRegister, newSession, sessionNick, dropSession, getPlayer, publicProfile, leaderboard } from "./lib/store.js";
-import { registerClient, unregisterClient, joinQueue, cancelQueue, createPrivate, joinPrivate, submitAnswer, requestRematch, leaveAll } from "./lib/rooms.js";
+import { registerClient, unregisterClient, dropClient, isInMatch, joinQueue, cancelQueue, createPrivate, joinPrivate, submitAnswer, requestRematch, leaveAll } from "./lib/rooms.js";
 import { LEVELS, FORMATS, OPS } from "./lib/game.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -91,7 +91,7 @@ const server = createServer(async (req, res) => {
   // ---- Profils ----
   if (path === "/api/profile" && req.method === "GET") {
     const nick = sessionNick(url.searchParams.get("token"));
-    if (!nick) return sendJSON(res, 401, { error: "Nav pieteicies." });
+    if (!nick) return sendJSON(res, 401, { error: "not_logged_in" });
     return sendJSON(res, 200, { profile: publicProfile(getPlayer(nick)) });
   }
 
@@ -115,14 +115,16 @@ const server = createServer(async (req, res) => {
     res.write(":ok\n\n");
     sseClients.set(token, res);
     const player = getPlayer(nick);
-    registerClient(token, player.nick, (type, data) => sseSend(res, type, data));
-    sseSend(res, "ready", { profile: publicProfile(player) });
+    const send = (type, data) => sseSend(res, type, data);
+    // "ready" jāsūta pirms registerClient — tas var uzreiz atsūtīt "resume"
+    send("ready", { profile: publicProfile(player), inMatch: isInMatch(token) });
+    registerClient(token, player.nick, send);
 
     const ping = setInterval(() => { try { res.write(":ping\n\n"); } catch {} }, 25000);
     req.on("close", () => {
       clearInterval(ping);
-      sseClients.delete(token);
-      unregisterClient(token);
+      if (sseClients.get(token) === res) sseClients.delete(token);
+      unregisterClient(token, send);
     });
     return;
   }
@@ -132,7 +134,7 @@ const server = createServer(async (req, res) => {
     const body = await readBody(req);
     const { token, type } = body;
     const nick = sessionNick(token);
-    if (!nick) return sendJSON(res, 401, { error: "Nav pieteicies." });
+    if (!nick) return sendJSON(res, 401, { error: "not_logged_in" });
     let result = { ok: true };
     switch (type) {
       case "queue": result = joinQueue(token, body); break;
@@ -142,7 +144,8 @@ const server = createServer(async (req, res) => {
       case "answer": submitAnswer(token, body.value, body.seq); break;
       case "rematch": requestRematch(token); break;
       case "leave": leaveAll(token); break;
-      default: return sendJSON(res, 400, { error: "Nezināma darbība." });
+      case "logout": dropClient(token); dropSession(token); break;
+      default: return sendJSON(res, 400, { error: "unknown_action" });
     }
     return sendJSON(res, 200, result);
   }
