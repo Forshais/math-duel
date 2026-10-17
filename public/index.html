@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0e1230">
 <title>Math Duel</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Math Duel">
+<meta property="og:title" content="Math Duel">
+<meta property="og:description" content="Real-time math duels with friends.">
+<meta property="og:image" content="/icons/icon-512.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,6 +36,7 @@
     <button id="btn-login" class="btn primary big" data-i18n="login.btn"></button>
     <p id="login-error" class="error"></p>
     <p class="hint" data-i18n="login.hint"></p>
+    <a class="get-app" href="/install" data-i18n="app.get"></a>
   </div>
 </section>
 
@@ -39,6 +50,7 @@
     <div class="topbar-actions">
       <button id="btn-settings" class="btn ghost small" data-i18n="lobby.settings"></button>
       <button id="btn-board" class="btn ghost small" data-i18n="lobby.board"></button>
+      <a id="btn-app" class="btn ghost small" href="/install" data-i18n="app.short"></a>
     </div>
   </header>
 

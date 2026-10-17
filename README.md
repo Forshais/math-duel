@@ -5,6 +5,13 @@ katram grūtības līmenim — līdzīgi kā chess.com, tikai ar rēķināšanu.
 
 Uzbūvēts bez ārējām atkarībām: tikai Node.js iebūvētais (HTTP + SSE reāllaikam).
 
+## Jaunumi v0.4
+
+- **Aplikācija (PWA):** lapa `/install` — Android poga "Uzstādīt", iPhone instrukcija,
+  ikona sākuma ekrānā, atveras bez pārlūka joslas.
+- **PIN minēšanas aizsardzība:** max 10 nepareizi PIN 15 min no vienas IP.
+- Testi: `node test/duel.test.mjs` (pret palaistu serveri, PORT=3456).
+
 ## Jaunumi v0.3
 
 - **Angļu valoda** kā noklusētā, latviešu — iestatījumos (vai pieteikšanās ekrānā).

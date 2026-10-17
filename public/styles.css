@@ -224,3 +224,9 @@ button{font-family:inherit;touch-action:manipulation}
 .timer-fill.low{background:linear-gradient(90deg,var(--bad),var(--warn))}
 .board li.me .b-nick{color:var(--accent)}
 .np{touch-action:none}
+
+/* v0.4 — aplikācija (PWA) */
+.get-app{display:block;text-align:center;margin-top:16px;color:var(--accent);font-weight:700;font-size:15px;text-decoration:none}
+a.btn{text-decoration:none;display:inline-block}
+.topbar-actions{flex-wrap:wrap;justify-content:flex-end}
+.standalone #btn-app,.standalone .get-app{display:none}

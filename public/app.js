@@ -738,3 +738,12 @@ document.addEventListener("keydown", (e) => {
   renderLangRow($("#login-lang"));
   await tryResume();
 })();
+
+// ---------- Aplikācija (PWA) ----------
+// Atvērts kā uzstādīta aplikācija → paslēpjam "lejupielādēt" saites.
+if (matchMedia("(display-mode: standalone)").matches || navigator.standalone === true) {
+  document.documentElement.classList.add("standalone");
+}
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}

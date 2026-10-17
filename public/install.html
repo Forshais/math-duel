@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e1230">
+<title>Math Duel — get the app</title>
+<meta name="description" content="Real-time math duels with friends. Install the app on your phone.">
+<meta property="og:title" content="Math Duel">
+<meta property="og:description" content="Real-time math duels with friends. Tap to install the app.">
+<meta property="og:image" content="/icons/icon-512.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" href="/icons/favicon-64.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>
+:root{--bg:#0e1230;--bg2:#151a45;--card:#1b2154;--card2:#232a66;--ink:#eef1ff;--muted:#9aa3d4;--accent:#5b8cff;--accent2:#7c5bff;--good:#37d67a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:radial-gradient(1200px 700px at 50% -10%,#1c2560 0%,var(--bg) 60%);color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,system-ui,sans-serif;
+  padding:max(20px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom));display:flex;justify-content:center}
+main{width:100%;max-width:440px;text-align:center}
+.lang{display:flex;justify-content:flex-end;gap:6px}
+.lang button{background:var(--card2);color:var(--ink);border:1.5px solid transparent;border-radius:999px;padding:5px 11px;font:600 12px inherit;cursor:pointer}
+.lang button.sel{border-color:var(--accent)}
+.icon{width:132px;height:132px;border-radius:30px;margin:18px auto 14px;display:block;box-shadow:0 14px 40px rgba(0,0,0,.45)}
+h1{font-size:32px;margin:0 0 6px}
+.tag{color:var(--muted);margin:0 0 22px;line-height:1.5}
+.card{background:linear-gradient(180deg,var(--card) 0%,var(--bg2) 100%);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:20px;margin-bottom:14px;text-align:left}
+.btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font:700 18px inherit;color:#fff;cursor:pointer;text-align:center;text-decoration:none}
+.btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.14);font-size:16px;padding:13px;margin-top:10px}
+ol{margin:0;padding-left:22px;line-height:1.7}
+ol li{margin:4px 0}
+.k{display:inline-block;background:var(--card2);border-radius:8px;padding:1px 8px;font-weight:700;white-space:nowrap}
+.ok{color:var(--good);font-weight:700;text-align:center;margin:0 0 12px;font-size:17px}
+.note{color:var(--muted);font-size:13px;line-height:1.5;margin:12px 0 0}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div class="lang" id="lang"></div>
+  <img class="icon" src="/icons/icon-512.png" alt="">
+  <h1 id="t-title"></h1>
+  <p class="tag" id="t-tag"></p>
+
+  <!-- Jau uzstādīts / atvērts kā aplikācija -->
+  <section class="card" id="sec-installed" hidden>
+    <p class="ok" id="t-installed"></p>
+    <a class="btn primary" href="/" id="t-open"></a>
+  </section>
+
+  <!-- Android / dators ar Chrome vai Edge: viena poga -->
+  <section class="card" id="sec-button" hidden>
+    <button class="btn primary" id="btn-install"></button>
+    <p class="note" id="t-button-note"></p>
+  </section>
+
+  <!-- iPhone / iPad -->
+  <section class="card" id="sec-ios" hidden>
+    <ol id="t-ios"></ol>
+  </section>
+
+  <!-- Android bez pogas (Firefox, Samsung u.c.) -->
+  <section class="card" id="sec-android" hidden>
+    <ol id="t-android"></ol>
+  </section>
+
+  <!-- Dators bez instalēšanas atbalsta -->
+  <section class="card" id="sec-desktop" hidden>
+    <p style="margin:0;line-height:1.6" id="t-desktop"></p>
+  </section>
+
+  <a class="btn ghost" href="/" id="t-play"></a>
+  <button class="btn ghost" id="btn-share"></button>
+</main>
+
+<script>
+"use strict";
+const TXT = {
+  en: {
+    title: "Math Duel",
+    tag: "Real-time math duels with friends.<br>Faster. Sharper. Win.",
+    installed: "✓ The app is installed",
+    open: "Open Math Duel",
+    install: "📲 Install the app",
+    buttonNote: "Free, no app store needed. The app appears on your home screen like any other app.",
+    ios: [
+      "Open this page in <b>Safari</b>.",
+      "Tap the <span class='k'>Share ⬆</span> button at the bottom of the screen.",
+      "Scroll down and tap <span class='k'>Add to Home Screen</span>.",
+      "Tap <span class='k'>Add</span> — the Math Duel icon appears on your home screen.",
+    ],
+    android: [
+      "Open the browser menu <span class='k'>⋮</span> (top right).",
+      "Tap <span class='k'>Install app</span> or <span class='k'>Add to Home screen</span>.",
+      "Confirm — the Math Duel icon appears on your home screen.",
+    ],
+    desktop: "📱 Open this link on your phone to install the app. On a computer you can simply play in the browser — or install it from Chrome/Edge (the install icon in the address bar).",
+    play: "Play in the browser",
+    share: "Share this link",
+    copied: "Link copied!",
+    shareText: "Play Math Duel with me! Install the app:",
+    done: "✓ Installed! Find Math Duel on your home screen.",
+  },
+  lv: {
+    title: "Matemātikas duelis",
+    tag: "Reāllaika matemātikas dueļi ar draugiem.<br>Ātrāk. Precīzāk. Uzvari.",
+    installed: "✓ Aplikācija ir uzstādīta",
+    open: "Atvērt Matemātikas dueli",
+    install: "📲 Uzstādīt aplikāciju",
+    buttonNote: "Bez maksas, bez aplikāciju veikala. Ikona parādīsies sākuma ekrānā kā jebkurai aplikācijai.",
+    ios: [
+      "Atver šo lapu <b>Safari</b> pārlūkā.",
+      "Ekrāna apakšā spied <span class='k'>Kopīgot ⬆</span>.",
+      "Ritini uz leju un spied <span class='k'>Pievienot sākuma ekrānam</span>.",
+      "Spied <span class='k'>Pievienot</span> — sākuma ekrānā parādīsies spēles ikona.",
+    ],
+    android: [
+      "Atver pārlūka izvēlni <span class='k'>⋮</span> (augšā labajā pusē).",
+      "Spied <span class='k'>Instalēt lietotni</span> vai <span class='k'>Pievienot sākuma ekrānam</span>.",
+      "Apstiprini — sākuma ekrānā parādīsies spēles ikona.",
+    ],
+    desktop: "📱 Atver šo saiti telefonā, lai uzstādītu aplikāciju. Datorā vari vienkārši spēlēt pārlūkā — vai uzstādīt to no Chrome/Edge (uzstādīšanas ikona adreses joslā).",
+    play: "Spēlēt pārlūkā",
+    share: "Dalīties ar saiti",
+    copied: "Saite nokopēta!",
+    shareText: "Uzspēlē ar mani Matemātikas dueli! Uzstādi aplikāciju:",
+    done: "✓ Uzstādīts! Meklē Matemātikas dueli sākuma ekrānā.",
+  },
+};
+
+let lang = (() => {
+  try { const v = localStorage.getItem("md_lang"); if (TXT[v]) return v; } catch {}
+  return (navigator.language || "").toLowerCase().startsWith("lv") ? "lv" : "en";
+})();
+const $ = (s) => document.querySelector(s);
+const ua = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/.test(ua);
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+let deferred = null;     // beforeinstallprompt notikums (Chrome/Edge/Samsung)
+let installedNow = false;
+
+function render() {
+  const T = TXT[lang];
+  document.documentElement.lang = lang;
+  document.title = T.title;
+  $("#lang").innerHTML = "";
+  for (const id of ["en", "lv"]) {
+    const b = document.createElement("button");
+    b.textContent = id === "en" ? "English" : "Latviešu";
+    if (id === lang) b.className = "sel";
+    b.onclick = () => { lang = id; try { localStorage.setItem("md_lang", id); } catch {} render(); };
+    $("#lang").appendChild(b);
+  }
+  $("#t-title").textContent = T.title;
+  $("#t-tag").innerHTML = T.tag;
+  $("#t-installed").textContent = installedNow ? T.done : T.installed;
+  $("#t-open").textContent = T.open;
+  $("#btn-install").textContent = T.install;
+  $("#t-button-note").textContent = T.buttonNote;
+  $("#t-ios").innerHTML = T.ios.map((s) => `<li>${s}</li>`).join("");
+  $("#t-android").innerHTML = T.android.map((s) => `<li>${s}</li>`).join("");
+  $("#t-desktop").textContent = T.desktop;
+  $("#t-play").textContent = T.play;
+  $("#btn-share").textContent = T.share;
+
+  // Kuru sadaļu rādīt
+  const show = (id) => ["installed", "button", "ios", "android", "desktop"].forEach((s) => { $("#sec-" + s).hidden = s !== id; });
+  if (standalone || installedNow) show("installed");
+  else if (deferred) show("button");
+  else if (isIOS) show("ios");
+  else if (isAndroid) show(waitedForPrompt ? "android" : null);
+  else show(waitedForPrompt ? "desktop" : null);
+  $("#t-play").hidden = standalone;
+}
+
+// Chrome paziņo par uzstādīšanas iespēju ar nelielu aizturi — pagaidām, pirms rādām rokas instrukciju
+let waitedForPrompt = false;
+setTimeout(() => { waitedForPrompt = true; render(); }, 1500);
+
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferred = e; render(); });
+addEventListener("appinstalled", () => { installedNow = true; deferred = null; render(); });
+
+$("#btn-install").onclick = async () => {
+  if (!deferred) return;
+  deferred.prompt();
+  const choice = await deferred.userChoice.catch(() => null);
+  if (choice && choice.outcome === "accepted") installedNow = true;
+  deferred = null;
+  render();
+};
+
+$("#btn-share").onclick = async () => {
+  const T = TXT[lang];
+  const url = location.origin + "/install";
+  if (navigator.share) {
+    try { await navigator.share({ title: T.title, text: T.shareText, url }); return; } catch (e) { if (e.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(url); $("#btn-share").textContent = T.copied; }
+  catch { prompt(T.shareText, url); }
+};
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+render();
+</script>
+</body>
+</html>

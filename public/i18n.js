@@ -92,6 +92,10 @@ const I18N = {
     "err.own_room": "You can’t join your own room.",
     "err.host_offline": "The room creator is no longer online.",
     "err.not_logged_in": "You are not signed in.",
+    "err.too_many_attempts": "Too many wrong attempts. Please wait a few minutes and try again.",
+
+    "app.get": "📲 Get the app for your phone",
+    "app.short": "📲 App",
   },
 
   lv: {
@@ -184,6 +188,10 @@ const I18N = {
     "err.own_room": "Nevar pievienoties pats savai istabai.",
     "err.host_offline": "Istabas veidotājs vairs nav tiešsaistē.",
     "err.not_logged_in": "Nav pieteicies.",
+    "err.too_many_attempts": "Pārāk daudz nepareizu mēģinājumu. Pagaidi dažas minūtes un mēģini vēlreiz.",
+
+    "app.get": "📲 Lejupielādē aplikāciju telefonam",
+    "app.short": "📲 Lietotne",
   },
 };
 

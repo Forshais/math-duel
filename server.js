@@ -3,7 +3,7 @@
 
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
-import { join, extname, normalize } from "node:path";
+import { join, extname, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
@@ -25,7 +25,35 @@ const MIME = {
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
   ".png": "image/png",
+  ".webmanifest": "application/manifest+json",
 };
+
+// ---- PIN minēšanas ierobežojums ----
+// PIN ir tikai 4–8 cipari, tāpēc no vienas IP adreses atļaujam ne vairāk kā
+// LOGIN_MAX_FAILS nepareizus PIN 15 minūšu laikā.
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_FAILS = 10;
+const loginFails = new Map(); // ip -> { count, since }
+
+// Pēdējā X-Forwarded-For vērtība = adrese, ko redzēja tuvākais proxy (Caddy/Render)
+function clientIp(req) {
+  const xff = String(req.headers["x-forwarded-for"] || "").split(",").map((s) => s.trim()).filter(Boolean);
+  return xff.length ? xff[xff.length - 1] : req.socket.remoteAddress || "?";
+}
+function loginBlocked(ip) {
+  const f = loginFails.get(ip);
+  if (!f) return false;
+  if (Date.now() - f.since > LOGIN_WINDOW_MS) { loginFails.delete(ip); return false; }
+  return f.count >= LOGIN_MAX_FAILS;
+}
+function noteFailedLogin(ip) {
+  const f = loginFails.get(ip);
+  if (!f || Date.now() - f.since > LOGIN_WINDOW_MS) loginFails.set(ip, { count: 1, since: Date.now() });
+  else f.count++;
+}
+setInterval(() => {
+  for (const [ip, f] of loginFails) if (Date.now() - f.since > LOGIN_WINDOW_MS) loginFails.delete(ip);
+}, LOGIN_WINDOW_MS).unref();
 
 // token -> http response (SSE straume)
 const sseClients = new Map();
@@ -54,7 +82,7 @@ function sseSend(res, type, data) {
 }
 
 async function serveStatic(req, res, urlPath) {
-  let rel = urlPath === "/" ? "/index.html" : urlPath;
+  let rel = urlPath === "/" ? "/index.html" : urlPath === "/install" ? "/install.html" : urlPath;
   rel = normalize(rel).replace(/^(\.\.[/\\])+/, "");
   const filePath = join(PUBLIC_DIR, rel);
   if (!filePath.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end("Forbidden"); }
@@ -62,7 +90,9 @@ async function serveStatic(req, res, urlPath) {
     const s = await stat(filePath);
     if (s.isDirectory()) throw new Error("dir");
     const body = await readFile(filePath);
-    res.writeHead(200, { "Content-Type": MIME[extname(filePath)] || "application/octet-stream" });
+    // Ikonas drīkst kešot; pārējo pārlūks pārbauda katru reizi — lai pēc atjauninājuma uzreiz redz jauno versiju
+    const cache = filePath.includes(`${sep}icons${sep}`) ? "public, max-age=604800" : "no-cache";
+    res.writeHead(200, { "Content-Type": MIME[extname(filePath)] || "application/octet-stream", "Cache-Control": cache });
     res.end(body);
   } catch {
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
@@ -86,9 +116,14 @@ const server = createServer(async (req, res) => {
 
   // ---- Pieteikšanās / reģistrācija ----
   if (path === "/api/login" && req.method === "POST") {
+    const ip = clientIp(req);
+    if (loginBlocked(ip)) return sendJSON(res, 429, { error: "too_many_attempts" });
     const { nick, pin } = await readBody(req);
     const r = loginOrRegister(nick, pin);
-    if (!r.ok) return sendJSON(res, 400, { error: r.error });
+    if (!r.ok) {
+      if (r.error === "nick_taken") noteFailedLogin(ip); // nepareizs PIN esošam Nick
+      return sendJSON(res, 400, { error: r.error });
+    }
     const token = newSession(r.player.nick);
     return sendJSON(res, 200, { token, isNew: r.isNew, profile: publicProfile(r.player) });
   }
