@@ -113,7 +113,11 @@ async function logout() {
   if (state.es) { state.es.close(); state.es = null; }
   state.token = null;
   lsDel("md_token");
+  lsDel("md_nick");
   $("#login-error").textContent = "";
+  // tukši lauki — lai uzreiz var pieteikties kā cits spēlētājs
+  $("#in-nick").value = "";
+  $("#in-pin").value = "";
   show("#screen-login");
 }
 
@@ -710,6 +714,7 @@ $("#btn-board-back").onclick = () => show("#screen-lobby");
 $("#btn-settings").onclick = openSettings;
 $("#btn-settings-back").onclick = () => { renderLobby(); show("#screen-lobby"); };
 $("#btn-logout").onclick = logout;
+$("#btn-logout-top").onclick = logout;
 
 // pointerdown (nevis click) — reaģē uzreiz pie pieskāriena, bez telefona aizkaves.
 // Ātruma spēlē katra milisekunde skaitās.

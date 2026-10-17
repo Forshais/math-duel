@@ -32,6 +32,7 @@ const I18N = {
     "lobby.ratingLine": "Level {level} · rating {rating}",
     "lobby.upTo": "up to {n}",
     "lobby.logout": "Sign out",
+    "lobby.switchUser": "Sign out · switch player",
 
     "format.blitz": "Blitz · 60 s",
     "format.m3": "3 minutes",
@@ -128,6 +129,7 @@ const I18N = {
     "lobby.ratingLine": "Līmenis {level} · reitings {rating}",
     "lobby.upTo": "līdz {n}",
     "lobby.logout": "Iziet",
+    "lobby.switchUser": "Iziet · mainīt spēlētāju",
 
     "format.blitz": "Blitz · 60 s",
     "format.m3": "3 minūtes",
